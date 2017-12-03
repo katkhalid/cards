@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div id="wrapper">
+        <div id="container">
+            <div id="welcome">
+                <h1>Card sorter</h1>
+            </div>
+
+            <div>
+                <input type="button" id="sort-card-button" value="Get/Sort new cards!"/>
+            </div>
+            <div id="bloc-result-sort-card"> </div>
+
+            <div id="sort-card-second-button">
+                <input type="button" id="verify-sort-card" value="Verify/send sorted cards!"/>
+            </div>
+            <div id="bloc-verify-result-sort-card"> </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/fosjsrouting/js/router.js') }}"></script>
+    <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        $(function() {
+            $('#bloc-verify-sort-card').hide();
+            $('#sort-card-second-button').hide();
+            $('#sort-card-button').on('click', function(){
+                var url = Routing.generate('sort_cards');
+                $.ajax({
+                    method: "GET",
+                    url: url,
+                    success: function(data) {
+                        console.log('Sort card: success! : ' + data);
+                        $('#bloc-result-sort-card').html(formatData(JSON.parse(data)));
+                        $('#bloc-verify-sort-card').show();
+                        $('#sort-card-second-button').show();
+                        $('#bloc-verify-result-sort-card').html('');
+                    },
+                    error: function(error) {
+                        console.log('Sort card: error! : ' + error);
+                        $('#bloc-result-sort-card').html('Error while calling distant WS.');
+                        $('#bloc-verify-sort-card').hide();
+                        $('#sort-card-second-button').hide();
+                        $('#bloc-result-sort-card').css({'background-color': 'red'});
+
+                    }
+                });
+            });
+
+            $('#verify-sort-card').on('click', function(){
+                var url = Routing.generate('verify_sort_cards');
+                $.ajax({
+                    method: "GET",
+                    url: url,
+                    success: function(data) {
+                        var cssColor = '', message = '', parsedData = JSON.parse(data);
+
+                        if(parsedData.code >= 400 && parsedData.code < 500) {
+                            message = 'The server responded with code ' + parsedData.code + ', the suggested solution is not accepted.';
+                            cssColor = 'yellow';
+                        } else if(parsedData.code >= 200 && parsedData.code < 300) {
+                            message = 'Success, the suggested solution is accepted.';
+                            cssColor = 'green';
+                        }else {
+                            message = 'The server responded with code ' + parsedData.code + ', the suggested solution is not accepted.';
+                            cssColor = 'red';
+                        }
+                        $('#bloc-verify-result-sort-card').html(message);
+                        $('#bloc-verify-result-sort-card').css({'background-color': cssColor});
+                    },
+                    error: function(error) {
+                        $('#bloc-verify-result-sort-card').html('Error while calling distant WS.');
+                        $('#bloc-verify-result-sort-card').css({'background-color': 'red'});
+
+                    }
+                });
+            });
+        });
+
+
+        function formatData(data) {
+            var str = '';
+            str += '<div class="raw-cards" style="text-transform:capitalize;">' +
+                    '<h3>10 random cards</h3>' +
+                    '<ul>';
+
+            for(var i = 0; i < data.cards.length;i++){
+                str += '<li>[' + data.cards[i].category.toLowerCase() + ' / ' + data.cards[i].value.toLowerCase() + ']</li>';
+            }
+            str += '</div>';
+            str += '<div class="cards-category-ordered">' +
+                    '<h3>Sorted cards: Category order</h3>' +
+                    data.categoryOrder +
+                    '</ul>' +
+                    '</div>';
+
+            str += '<div class="cards-value-cards-ordered">' +
+                    '<h3>Sorted cards: Value order</h3>' +
+                    data.valueOrder +
+                    '</div>';
+            return str;
+        }
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    body { background: #F5F5F5; font: 18px/1.5 sans-serif; }
+    h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
+    h1 { font-size: 36px; }
+    h2 { font-size: 21px; margin-bottom: 1em; }
+    p { margin: 0 0 1em 0; }
+    a { color: #0000F0; }
+    a:hover { text-decoration: none; }
+    code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
+    #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
+    #container { padding: 2em; }
+
+
+</style>
+{% endblock %}
