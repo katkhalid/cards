@@ -24,6 +24,18 @@ The server returns the 10 randomly selected cards, followed by the sort by categ
 
 The proposed solution is sent to the server for validation, it returns either a success or fail message.
 
+Used bundles
+------------
 
+* FOSJsRoutingBundle :
 
+This bundle allows you to expose your routing in your JavaScript code
+
+https://github.com/FriendsOfSymfony/FOSJsRoutingBundle
+
+* JMSSerializerBundle : 
+
+This bundle integrates the serializer library into Symfony.
+
+https://github.com/schmittjoh/JMSSerializerBundle
 
